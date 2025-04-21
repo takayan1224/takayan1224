@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>どすこい掃除</title>
+  <style>
+    /* —— 全体背景とフォント —— */
+    body {
+      font-family: "Hiragino Kaku Gothic ProN", sans-serif;
+      background: linear-gradient(to bottom right, #fce4ec, #e8f5e9);
+      margin: 0;
+      padding: 40px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 42px;
+      color: #ad1457;
+      margin-bottom: 30px;
+      text-shadow: 1px 1px 2px #fff;
+    }
+
+    /* —— 設定エリア —— */
+    #configArea {
+      margin-bottom: 20px;
+      font-size: 20px;
+      color: #6a1b9a;
+    }
+    #timeInput {
+      font-size: 20px;
+      width: 60px;
+      padding: 6px;
+      border: 2px solid #ce93d8;
+      border-radius: 6px;
+      text-align: center;
+      margin-left: 10px;
+      margin-right: 20px;
+    }
+
+    /* —— ゲーム開始ボタン —— */
+    #startButton {
+      font-size: 24px;
+      padding: 12px 36px;
+      background-color: #ec407a;
+      color: #fff;
+      border: none;
+      border-radius: 24px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    #startButton:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    /* —— ゲームエリア全体 —— */
+    #gameArea {
+      display: none;
+      margin-top: 40px;
+      background: #ffffffcc;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      max-width: 700px;
+      width: 90%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* —— プレイヤー名 —— */
+    #player {
+      font-size: 30px;
+      font-weight: bold;
+      color: #6a1b9a;
+      background: #f3e5f5;
+      padding: 12px 20px;
+      border-radius: 30px;
+      display: inline-block;
+      margin-bottom: 20px;
+      white-space: nowrap;
+    }
+
+    /* —— お題プロンプト —— */
+    #prompt {
+      font-size: 28px;
+      line-height: 1.4;
+      color: #4a148c;
+      margin-bottom: 20px;
+      white-space: nowrap;
+    }
+    /* 強調部分 */
+    #prompt .init,
+    #prompt .length {
+      font-size: 1.4em;
+      font-weight: bold;
+      color: #d81b60;
+      background: #fce4ec;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+
+    /* —— カウントダウン —— */
+    #timer {
+      font-size: 72px;
+      font-weight: bold;
+      color: #c62828;
+      margin-bottom: 20px;
+      text-shadow: 1px 1px 2px #fff;
+    }
+
+    /* —— 入力欄 & 送信ボタン —— */
+    #answer {
+      font-size: 20px;
+      padding: 10px 14px;
+      width: 240px;
+      border: 2px solid #ce93d8;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      outline: none;
+    }
+    #submit {
+      font-size: 22px;
+      padding: 10px 36px;
+      background-color: #ab47bc;
+      color: #fff;
+      border: none;
+      border-radius: 24px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      user-select: none;
+    }
+    #submit:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    /* —— 判定メッセージ —— */
+    #result {
+      font-size: 28px;
+      font-weight: bold;
+      margin-top: 20px;
+      min-height: 1.2em;
+    }
+    #result.clear {
+      color: #2e7d32;
+    }
+    #result.out {
+      color: #c62828;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🌸 どすこい掃除ゲーム 🌸</h1>
+
+  <div id="configArea">
+    カウントダウン秒数：
+    <input id="timeInput" type="number" value="5" min="1" max="60"> 秒
+  </div>
+  <button id="startButton">ゲームスタート</button>
+
+  <div id="gameArea">
+    <div id="player">— さん、準備中…</div>
+    <div id="prompt">
+      「<span class="init">〇</span>」から始まる<span class="length">〇</span>文字の 言葉は？
+    </div>
+    <div id="timer">5</div>
+    <input id="answer" type="text" placeholder="ここに入力">
+    <div><button id="submit">送信</button></div>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const students = [
+      "足立 昊祐","有坂 さくら","安藤 朱里","石川　伊織","岩田 凛空","上野 稀月凜","上村 啓心","宇野 瑚音美","奥田 治弥","尾花 爽太",
+      "片山 心結","片山 莉子","川本 陽斗","佐々木 紬希","清水 学","杉田 源人","袖岡 芽希","高山 紗菜","竹内 瑛基","竹岡 亜惟子",
+      "田中 響揮","永澤 琴羽","西田 問希","西山 果凛","野崎 遥斗","八濱 悠斗","濱野 旭希","林 優月","東田 竜之介","福田 麻博",
+      "藤野 尚輝","藤林 杏","古澤 悠梨花","星野 想真","松田 日呂樹","丸山 一心","森本 友里","山下 穂","山本 さくら","米山 すみれ"
+    ];
+    const hiragana = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわを";
+
+    const startButton = document.getElementById("startButton");
+    const configArea  = document.getElementById("configArea");
+    const timeInput   = document.getElementById("timeInput");
+    const gameArea    = document.getElementById("gameArea");
+    const playerEl    = document.getElementById("player");
+    const promptEl    = document.getElementById("prompt");
+    const timerEl     = document.getElementById("timer");
+    const answerEl    = document.getElementById("answer");
+    const submitEl    = document.getElementById("submit");
+    const resultEl    = document.getElementById("result");
+
+    let currentName, currentInit, currentLen, timerInterval;
+
+    function nextRound() {
+      clearInterval(timerInterval);
+      resultEl.textContent = "";
+      answerEl.value = "";
+
+      currentName = students[Math.floor(Math.random() * students.length)];
+      playerEl.textContent = `${currentName} さん、解答してください`;
+
+      currentInit = hiragana.charAt(Math.floor(Math.random() * hiragana.length));
+      currentLen  = Math.floor(Math.random() * 5) + 2; // 2〜6文字
+      promptEl.querySelector(".init").textContent   = currentInit;
+      promptEl.querySelector(".length").textContent = currentLen;
+
+      answerEl.focus();
+
+      let timeLeft = parseInt(timeInput.value, 10) || 5;
+      timerEl.textContent = timeLeft;
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        if (timeLeft >= 0) timerEl.textContent = timeLeft;
+        if (timeLeft <= 0) clearInterval(timerInterval);
+      }, 1000);
+    }
+
+    submitEl.addEventListener("click", function(e) {
+      const rect = this.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const isClear = x < rect.width / 2;
+      clearInterval(timerInterval);
+      if (isClear) {
+        resultEl.textContent = "クリア！";
+        resultEl.className = "clear";
+      } else {
+        resultEl.textContent = "アウト！";
+        resultEl.className = "out";
+      }
+      setTimeout(nextRound, 1000);
+    });
+
+    startButton.addEventListener("click", () => {
+      configArea.style.display  = "none";
+      startButton.style.display = "none";
+      gameArea.style.display    = "block";
+      nextRound();
+    });
+  </script>
+
+</body>
+</html>
