@@ -36,6 +36,12 @@ h1 {
   transform-origin: bottom center;
 }
 
+/* ミッフィー画像のみを上に10pxずらす */
+#miffy {
+  position: relative;
+  top: -10px;
+}
+
 /* 跳ねるアニメーション */
 @keyframes bounce {
   0%   { transform: translateY(0); }
