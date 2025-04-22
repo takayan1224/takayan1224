@@ -2,8 +2,27 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <!-- ズーム禁止メタタグ -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
   <title>タップバトル with Google フォーム送信</title>
   <style>
+    /* —— タッチ操作の最適化 —— */
+    html, body {
+      /* ダブルタップズーム抑制 */
+      touch-action: manipulation;
+      /* テキスト選択や長押しメニューをOFF */
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    button {
+      /* タップハイライトを消去 */
+      -webkit-tap-highlight-color: transparent;
+      /* ズームやスクロールを抑制、クリックを即時 */
+      touch-action: manipulation;
+    }
+
+    /* —— 全体スタイル —— */
     body {
       font-family: "Hiragino Kaku Gothic ProN", sans-serif;
       background: linear-gradient(to bottom right, #e0f7fa, #ffe0b2);
@@ -36,6 +55,8 @@
       cursor: pointer;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       transition: transform 0.1s ease;
+      /* ボタンにも touch-action を適用 */
+      touch-action: manipulation;
     }
     button:active {
       transform: translateY(2px);
@@ -62,21 +83,18 @@
 
   <script>
     // ■ Google フォーム送信用設定
-    // 以下はご自身のフォームID・エントリー名に置き換えてください
-    const FORM_URL   = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLScVLXwle4IvaDxS2NWVx9I8gMneL-eSTYRqYYWMtqXD4AFzgA/formResponse';
-    const NAME_FIELD = 'entry.1667011312';  // 「プレイヤー名」の entry.xxxxx
-    const SCORE_FIELD= 'entry.1114664237';  // 「スコア」の entry.yyyyy
+    const FORM_URL    = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLScVLXwle4IvaDxS2NWVx9I8gMneL-eSTYRqYYWMtqXD4AFzgA/formResponse';
+    const NAME_FIELD  = 'entry.1667011312';
+    const SCORE_FIELD = 'entry.1114664237';
 
     let timeLeft, score, timerInterval;
-    const timerEl    = document.getElementById('timer');
-    const scoreEl    = document.getElementById('score');
-    const tapButton  = document.getElementById('tapButton');
-    const startButton= document.getElementById('startButton');
+    const timerEl     = document.getElementById('timer');
+    const scoreEl     = document.getElementById('score');
+    const tapButton   = document.getElementById('tapButton');
+    const startButton = document.getElementById('startButton');
 
-    // スタートボタンを押したらゲーム開始
     startButton.addEventListener('click', () => {
-      // 初期化
-      timeLeft = 10;      // カウントダウン秒数（必要に応じて変更可）
+      timeLeft = 10;
       score    = 0;
       timerEl.textContent = timeLeft;
       scoreEl.textContent = score;
@@ -84,17 +102,13 @@
       tapButton.style.display   = 'inline-block';
       tapButton.disabled        = false;
 
-      // タイマー開始
       timerInterval = setInterval(() => {
         timeLeft--;
         timerEl.textContent = timeLeft;
-        if (timeLeft <= 0) {
-          endGame();
-        }
+        if (timeLeft <= 0) endGame();
       }, 1000);
     });
 
-    // タップボタンを押したらスコア加算
     tapButton.addEventListener('click', () => {
       if (timeLeft > 0) {
         score++;
@@ -102,12 +116,10 @@
       }
     });
 
-    // ゲーム終了処理
     function endGame() {
       clearInterval(timerInterval);
       tapButton.disabled = true;
       tapButton.style.display = 'none';
-      // プレイヤー名を入力
       const playerName = prompt('あなたの名前を入力してください');
       if (playerName) {
         submitScoreToGoogle(playerName, score);
@@ -115,11 +127,9 @@
       } else {
         alert('名前が入力されなかったためスコアは送信されませんでした。');
       }
-      // リスタート用にボタンを再表示
       startButton.style.display = 'inline-block';
     }
 
-    // Google フォームへ非同期送信
     function submitScoreToGoogle(name, score) {
       const data = new URLSearchParams();
       data.append(NAME_FIELD, name);
