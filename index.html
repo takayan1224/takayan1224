@@ -97,7 +97,7 @@
       timeLeft = 10;
       score    = 0;
       timerEl.textContent = timeLeft;
-      scoreEl.textContent = score;
+      scoreEl.textContent = score + 'iya';
       startButton.style.display = 'none';
       tapButton.style.display   = 'inline-block';
       tapButton.disabled        = false;
@@ -112,7 +112,7 @@
     tapButton.addEventListener('click', () => {
       if (timeLeft > 0) {
         score++;
-        scoreEl.textContent = score;
+        scoreEl.textContent = score + 'iya';
       }
     });
 
