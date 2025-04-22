@@ -29,17 +29,12 @@ h1 {
   width: 150px;
   height: 150px;
   overflow: visible;
+  margin-top: -30px;
 }
 #miffy {
   width: 100%;
   display: block;
   transform-origin: bottom center;
-}
-
-/* ミッフィー画像のみを上に10pxずらす */
-#miffy {
-  position: relative;
-  top: -30px;
 }
 
 /* 跳ねるアニメーション */
