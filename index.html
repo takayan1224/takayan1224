@@ -10,16 +10,16 @@
 </head>
 <body>
 
-  <h1>タップバトル</h1>
+  <h1>掃除いやいやバトル</h1>
 
   <!-- ミッフィー画像 -->
   <div id="miffy-container">
     <img id="miffy" src="miffy.png" alt="ミッフィー">
   </div>
 
-  <div id="timer">10</div>
+  <div id="timer">20</div>
   <div id="score"><span class="highlight">0</span> iya!</div>
-  <button id="tapButton">タップ！</button>
+  <button id="tapButton">いや！</button>
   <button id="startButton">スタート</button>
 
   <script>
@@ -37,7 +37,7 @@
 
     startButton.addEventListener('click', () => {
       // 初期化
-      timeLeft = 10;
+      timeLeft = 20;
       score    = 0;
       timerEl.textContent = timeLeft;
       scoreEl.innerHTML   = `<span class="highlight">${score}</span> iya!`;
