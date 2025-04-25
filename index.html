@@ -2,102 +2,164 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <!-- ズーム禁止 -->
+  <!-- モバイルでのズーム＆テキスト自動調整防止 -->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-
-  <title>掃除いやいや！ゲーム</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-  <h1>掃除いやいや！<br>ゲーム</h1>
-
-  <!-- カウントダウンとミッフィーを横並び＆中央寄せ -->
- <div id="status" style="
-      display: inline-flex;       /* ← 変更 */
+  <title>ストップウォッッチ掃除決め</title>
+  <style>
+    /* 全体設定 */
+    html, body {
+      margin: 0; padding: 40px;
+      font-family: "Comic Sans MS", cursive, sans-serif;
+      background: linear-gradient(135deg, #ffe4e1, #e6e6fa);
+      text-align: center;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+      touch-action: manipulation;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    h1 {
+      font-size: 32px;
+      color: #d81b60;
+      margin-bottom: 30px;
+      text-shadow: 1px 1px 2px #fff;
+    }
+    /* ステータス行 */
+    #status {
+      display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 20px;
       margin-bottom: 20px;
-  ">
-    <div id="timer">20</div>
+    }
+    /* タイマー */
+    #timer {
+      width: 120px; height: 120px;
+      display: flex; align-items: center; justify-content: center;
+      background: #fff;
+      border: 4px solid #d81b60;
+      border-radius: 50%;
+      font-size: 36px; color: #d32f2f;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      opacity: 1;
+      transition: opacity 0.5s ease;
+    }
+    /* ミッフィーとボタンを縦並びに */
+    #miffy-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      width: 100px;
+    }
+    #miffy {
+      width: 100%;
+      transform-origin: bottom center;
+    }
+    /* 跳ねるアニメ */
+    @keyframes bounce {
+      0%   { transform: translateY(0); }
+      30%  { transform: translateY(-30px); }
+      50%  { transform: translateY(0); }
+      70%  { transform: translateY(-15px); }
+      100% { transform: translateY(0); }
+    }
+    .bounce {
+      animation: bounce 0.6s ease;
+    }
+    /* ボタン */
+    #tapButton {
+      font-size: 20px;
+      padding: 12px 30px;
+      background: #ffab00;
+      color: #3e2723;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: transform 0.1s ease;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    #tapButton:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ストップウォッッチ<br>掃除決め</h1>
+
+  <div id="status">
+    <div id="timer">0.00</div>
     <div id="miffy-container">
       <img id="miffy" src="miffy.png" alt="ミッフィー">
+      <button id="tapButton">スタート</button>
     </div>
   </div>
 
-  <div id="score"><span class="highlight">0</span> iya!</div>
-  <button id="tapButton">いや！</button>
-  <button id="startButton">スタート</button>
-
   <script>
     // ■ Google フォーム送信用設定
-    const FORM_URL    = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLScVLXwle4IvaDxS2NWVx9I8gMneL-eSTYRqYYWMtqXD4AFzgA/formResponse';
-    const NAME_FIELD  = 'entry.1667011312';
-    const SCORE_FIELD = 'entry.1114664237';
+    const FORM_URL   = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLSfM7FedYaXpVUrdWqg87a8RQKlRfInlii3amIC40RHy_Ndxgw/formResponse';
+    const NAME_FIELD = 'entry.1182712448';
+    const TIME_FIELD = 'entry.628884731';
 
-    let timeLeft, score, timerInterval;
-    const timerEl     = document.getElementById('timer');
-    const scoreEl     = document.getElementById('score');
-    const tapButton   = document.getElementById('tapButton');
-    const startButton = document.getElementById('startButton');
-    const miffyEl     = document.getElementById('miffy');
-
-    startButton.addEventListener('click', () => {
-      // 初期化
-      timeLeft = 20;
-      score    = 0;
-      timerEl.textContent = timeLeft;
-      scoreEl.innerHTML   = `<span class="highlight">${score}</span> iya!`;
-      startButton.style.display = 'none';
-      tapButton.style.display   = 'inline-block';
-      tapButton.disabled        = false;
-
-      // タイマー開始
-      timerInterval = setInterval(() => {
-        timeLeft--;
-        timerEl.textContent = timeLeft;
-        if (timeLeft <= 0) endGame();
-      }, 1000);
-    });
+    let running = false, startTime, timerId;
+    const timerEl   = document.getElementById('timer');
+    const tapButton = document.getElementById('tapButton');
+    const miffyEl   = document.getElementById('miffy');
 
     tapButton.addEventListener('click', () => {
-      if (timeLeft > 0) {
-        // スコア更新
-        score++;
-        scoreEl.innerHTML = `<span class="highlight">${score}</span> iya!`;
+      if (!running) {
+        // スタート
+        running   = true;
+        startTime = performance.now();
+        timerEl.textContent = '0.00';
+        timerEl.style.opacity = '1';
+        tapButton.textContent = 'ストップ';
 
-        // ミッフィー跳ねるアニメ
+        timerId = setInterval(() => {
+          const elapsed = (performance.now() - startTime) / 1000;
+          if (elapsed <= 3) {
+            timerEl.textContent = elapsed.toFixed(2);
+          } else {
+            // フェードアウト
+            timerEl.style.opacity = '0';
+          }
+        }, 10);
+
+      } else {
+        // ストップ
+        running = false;
+        clearInterval(timerId);
+        tapButton.textContent = 'スタート';
+
+        const finalTime = ((performance.now() - startTime) / 1000).toFixed(2);
+        // 名前入力＆送信
+        const name = prompt('お名前を入力してください');
+        if (name) {
+          submitResult(name, finalTime);
+          alert(`あなたのタイム: ${finalTime}秒\n送信しました！`);
+        } else {
+          alert('名前が入力されなかったため送信しませんでした。');
+        }
+      }
+      // ミッフィー跳ねる
+      if (running) {
         miffyEl.classList.remove('bounce');
-        void miffyEl.offsetWidth; // 再フローを強制
+        void miffyEl.offsetWidth;
         miffyEl.classList.add('bounce');
       }
     });
 
-    function endGame() {
-      clearInterval(timerInterval);
-      tapButton.disabled = true;
-      tapButton.style.display = 'none';
-
-      const playerName = prompt('あなたの名前を入力してください');
-      if (playerName) {
-        submitScoreToGoogle(playerName, score);
-        alert('スコアを送信しました！');
-      } else {
-        alert('名前が入力されなかったためスコアは送信されませんでした。');
-      }
-
-      startButton.style.display = 'inline-block';
-    }
-
-    function submitScoreToGoogle(name, score) {
+    function submitResult(name, time) {
       const data = new URLSearchParams();
       data.append(NAME_FIELD, name);
-      data.append(SCORE_FIELD, score);
+      data.append(TIME_FIELD, time);
       fetch(FORM_URL, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: data
       });
     }
